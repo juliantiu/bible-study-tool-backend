@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BibleStudyTool.Core.Entities.BibleVersionMetadata
+namespace BibleStudyTool.Core.Entities.BibleVersionInformation
 {
-    public class BibleVersionMetadata
+    public class BibleVersionInformation
     {
         public string Language { get; private set; }
         public string LanguageEndonym { get; private set; }
@@ -28,7 +28,7 @@ namespace BibleStudyTool.Core.Entities.BibleVersionMetadata
                 )>
             BibleBookDefinitions { get; private set; }
 
-        public BibleVersionMetadata
+        public BibleVersionInformation
             (string language,
             string languageEndonym,
             string languageExonym,
