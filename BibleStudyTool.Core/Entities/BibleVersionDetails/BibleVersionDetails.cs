@@ -4,15 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BibleStudyTool.Core.Entities.BibleVersionInformation
+namespace BibleStudyTool.Core.Entities.BibleVersionDetails
 {
-    public class BibleVersionInformation
+    public class BibleVersionDetails
     {
         public string Language { get; private set; }
         public string LanguageEndonym { get; private set; }
         public string LanguageExonym { get; private set; }
         public string VersionAbbreviation { get; private set; }
         public string VersionFullName { get; private set; }
+
 
         public Dictionary
             <string, 
@@ -23,12 +24,14 @@ namespace BibleStudyTool.Core.Entities.BibleVersionInformation
                 string Testament,
                 string Section,
                 string Subsection,
-                string ChapterCount,
-                string VerseCount
+                int ChapterCount,
+                int BookOrder,
+                int VerseCountTotal,
+                Dictionary<int, int> VerseCountPerChapter
                 )>
             BibleBookDefinitions { get; private set; }
 
-        public BibleVersionInformation
+        public BibleVersionDetails
             (string language,
             string languageEndonym,
             string languageExonym,
@@ -51,8 +54,10 @@ namespace BibleStudyTool.Core.Entities.BibleVersionInformation
                         string Testament,
                         string Section,
                         string Subsection,
-                        string ChapterCount,
-                        string VerseCount
+                        int ChapterCount,
+                        int bookOrder,
+                        int VerseCountTotal,
+                        Dictionary<int, int> VerseCountPerChapter
                     )>();
         }
     }

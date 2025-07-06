@@ -407,3 +407,5 @@ ASALocalRun/
 
 # Personal addendums
 appsettings.json
+
+BibleStudyTool.Infrastructure/DAL/EF/Migrations/*

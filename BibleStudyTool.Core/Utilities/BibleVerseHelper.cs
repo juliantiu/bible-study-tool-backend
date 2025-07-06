@@ -1,5 +1,6 @@
 ﻿using BibleStudyTool.Core.Entities.BibleVerse;
-using BibleStudyTool.Core.Entities.BibleVersionInformation;
+using BibleStudyTool.Core.Entities.BibleVersionDetails;
+using BibleStudyTool.Core.Globals;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -91,16 +92,16 @@ namespace BibleStudyTool.Core.Utilities
         };
 
         /// <summary>
-        ///     Converts raw string of semicolon-separated verse references (SSVR) into list of verse references, which can be used to build a list of Bible verses.
+        ///     Converts raw string of semicolon-separated verse references into list of verse references, which can be used to build a list of Bible verses.
         /// </summary>
         /// <param name="rawVerseReferences"></param>
         /// <returns>
         ///     An enumerable set of tuples that describe Bible verse references.
         /// </returns>
-        public static IEnumerable<(string, string, string)> ParseSSVR(string rawVerseReferences)
+        public static IEnumerable<(string, string, string)> ParseRawVerseReferences(string rawVerseReferences)
         {
-            MatchCollection separatedVerses = SeparateSSVR(rawVerseReferences);
-            return GenerateListOfVerseReferenceUnits(separatedVerses);
+            MatchCollection separatedVersesRefernces = TokenizeVerseReferences(rawVerseReferences);
+            return GenerateListOfVerseReferenceUnits(separatedVersesRefernces);
         }
 
         /// <summary>
@@ -111,9 +112,9 @@ namespace BibleStudyTool.Core.Utilities
         /// <returns>
         ///     A MatchCollection of string verse references.
         /// </returns>
-        private static MatchCollection SeparateSSVR(string rawVerseReferences)
+        private static MatchCollection TokenizeVerseReferences(string rawVerseReferences)
         {
-            string pattern = @"\b([1-3]?\s?[A-Za-z]+\.?)?\s*(\d{1,3})\s*(?::)?\s*(\d{1,3}[a-z]?(?:[,|-]\s*\d{1,3}[a-z]?)*)?";
+            string pattern = @"((?:[123]\s)?[a-zA-Z]+\.?)?(\s\d+-?\d*:?(?!\s\w*))(\d+[a-z]?-?\d*(?:,)?\s?)*";
             RegexOptions regexOptions = RegexOptions.IgnoreCase;
 
             Regex regex =
@@ -134,52 +135,66 @@ namespace BibleStudyTool.Core.Utilities
         ///     * HELPER FUNCTION *
         ///     Organizes a set of raw string semicolon-separated verse references into an iterable set of tuples that describe Bible verse references.
         /// </summary>
-        /// <param name="separatedVerses"></param>
+        /// <param name="separatedVerseReferences"></param>
         /// <returns>
         ///     An enumerable set of tuples that describe Bible verse references by (BookKey, ChapterNumber, VerseNumber).
         /// </returns>
         /// <exception cref="Exception"></exception>
         private static IEnumerable<(string, string, string)>
-            GenerateListOfVerseReferenceUnits(MatchCollection separatedVerses)
+            GenerateListOfVerseReferenceUnits(MatchCollection separatedVerseReferences)
         {
             List<(string, string, string)> parsedVerses = new();
 
             string bookName = String.Empty;
 
-            foreach (Match separatedVerse in separatedVerses)
+            foreach (Match separatedVerseReference in separatedVerseReferences)
             {
-                GroupCollection separatedVerseGroupings = separatedVerse.Groups;
+                GroupCollection separatedVerseGroupings = separatedVerseReference.Groups;
 
                 string matchedBookName =
                     separatedVerseGroupings[(int)ParseMatchGroupPosition.Book].Value;
 
                 bookName = NormalizeBookName(bookName, matchedBookName);
 
-                string chapter =
+                string chapters =
                         separatedVerseGroupings[(int)ParseMatchGroupPosition.Chapter].Value;
 
-                string verses =
-                    separatedVerseGroupings[(int)ParseMatchGroupPosition.Verses].Value;
+                PopulateParsedChapterRanges(chapters).
+                    Aggregate
+                    (
+                        parsedVerses,
+                        (verseReferences, chapter) =>
+                        {
+                            verseReferences.Add((bookName, chapter, "all"));
+                            return verseReferences;
+                        }
+                    );
 
-                if (String.IsNullOrEmpty(verses) && OneChapterBooks.Contains(bookName))
+                CaptureCollection verses =
+                    separatedVerseGroupings[(int)ParseMatchGroupPosition.Verses].Captures;
+
+                if (verses.Count() == 0 && HasOneChapter(bookName))
                 {
-                    verses = chapter;
-                    chapter = "1"; // Book only contains one chapter
+                    string oneChapterVerse = chapters;
+                    chapters = "1"; // Book only contains one chapter
+                    parsedVerses.Add((bookName, chapters, oneChapterVerse));
+
+                    continue;
                 }
 
-                SplitCommaSeparatedVerseNumbers(verses)
+                PopulateUnexpandedParsedVerseList(verses)
                     .Aggregate
                     (
                         parsedVerses,
-                        (result, verse) =>
+                        (verseReferences, verse) =>
                         {
-                            result.Add((bookName, chapter, verse));
-                            return result;
+                            verseReferences.Add((bookName, chapters, verse));
+                            return verseReferences;
                         }
                     );
             }
 
-            return parsedVerses;
+            return ExpandParsedVerseReferences(parsedVerses);
         }
 
         /// <summary>
@@ -192,14 +207,17 @@ namespace BibleStudyTool.Core.Utilities
         ///     Bible book key.
         /// </returns>
         /// <exception cref="Exception"></exception>
-        private static string NormalizeBookName(string bookName, string matchedBookName)
+        internal static string NormalizeBookName(string bookName, string matchedBookName)
         {
             bookName =
-                (String.IsNullOrEmpty(matchedBookName)
-                    ? bookName
-                    : matchedBookName)
-                .ToLower()
-                .Trim();
+                Regex.Replace(
+                    (String.IsNullOrEmpty(matchedBookName)
+                        ? bookName
+                        : matchedBookName)
+                    .ToLower(),
+                    @"\.|\s",
+                    ""
+                );
 
             string result = String.Empty;
 
@@ -210,6 +228,31 @@ namespace BibleStudyTool.Core.Utilities
             return result;
         }
 
+        private static IEnumerable<string> PopulateParsedChapterRanges(string chapters)
+        {
+            List<string> listOfChapters = new();
+
+            string[] splitByDash = chapters.Split('-');
+
+            string firstValue = splitByDash[0];
+
+            if (splitByDash.Length <= 1) return listOfChapters;
+
+            string lastValue = splitByDash[1];
+
+            int firstChapterInteger = Int32.Parse(firstValue);
+            int lastChapterInteger = Int32.Parse(lastValue);
+
+            // TODO: check if first and last chapter is in the book
+
+            if (lastChapterInteger < firstChapterInteger) return listOfChapters;
+
+            for (var c = firstChapterInteger; c <= lastChapterInteger; c++)
+                listOfChapters.Add($"{c}");
+
+            return listOfChapters;
+        }
+
         /// <summary>
         ///     * HELPER FUNCTION *
         ///     Splits verse numbers in the raw string input of verse numbers that are separated by commas.
@@ -218,44 +261,45 @@ namespace BibleStudyTool.Core.Utilities
         /// <returns>
         ///     An enumerable set of verse numbers. 
         /// </returns>
-        private static IEnumerable<string> SplitCommaSeparatedVerseNumbers(string verses)
+        private static IEnumerable<string> PopulateUnexpandedParsedVerseList(CaptureCollection verses)
         {
             return verses
-                .Split(",")
                 .Aggregate
                     (new List<string>(),
                     (listOfVerses, verse) =>
                     {
-                        string[] splitByDash = verse.Split('-');
 
+                        string[] splitByDash = verse.Value.Split('-');
+                        
                         string firstValue = splitByDash[0];
 
-                        listOfVerses.Add(firstValue.Replace(",", "").Trim());
+                        Char[] trimChars = { ',', ' ' };
+
+                        listOfVerses.Add(firstValue.Trim(trimChars));
 
                         if (splitByDash.Length <= 1) return listOfVerses;
 
                         string lastValue = splitByDash[1];
 
-                        int firstValueInteger = ParseVerseToInteger(firstValue);
-                        int lastValueInteger = ParseVerseToInteger(lastValue);
+                        int firstVerseInteger = ParseVerseToInteger(firstValue);
+                        int lastVerseInteger = ParseVerseToInteger(lastValue);
 
-                        for (var v = firstValueInteger + 1; v < lastValueInteger; v++)
-                            listOfVerses.Add(v.ToString());
+                        // TODO: check if first and last verse is in the chapter.
 
-                        listOfVerses.Add(lastValue);
+                        if (lastVerseInteger > firstVerseInteger)
+                        {
+                            for (var v = firstVerseInteger + 1; v <= lastVerseInteger; v++)
+                                listOfVerses.Add(v.ToString().Trim(trimChars));
+                        }
+                        else
+                        {
+                            listOfVerses.RemoveAt(listOfVerses.Count() - 1);
+                        }
 
-                        return listOfVerses;
+                            return listOfVerses;
                     });
         }
 
-        /// <summary>
-        ///     When populating the list of verses, if there are no verses specified, interprets the chapter as a verse if the Bible book only has one chapter or populates the list will all verses in a chapter if the Bible book has more than one chapter.
-        /// </summary>
-        /// <exception cref="NotImplementedException"></exception>
-        private static void EvaluateEmptyVerseField()
-        {
-            throw new NotImplementedException();
-        }
 
         /// <summary>
         ///     * HELPER FUNCTION *
@@ -266,16 +310,70 @@ namespace BibleStudyTool.Core.Utilities
         ///     Integer representation of verse numbers inputted as strings.
         /// </returns>
         private static int ParseVerseToInteger(string verse)
-            => int.Parse(Regex.Replace(verse, @"[a-z]", "").Trim());
+            => int.Parse(Regex.Replace(verse, @"[a-z]|,", "").Trim());
+
+        public static bool IsValidChapter(string bookKey, int chapterNumber)
+        {
+            // check if chapter is in the book
+            // first check if the book is a one-chapter book
+            if (HasOneChapter(bookKey) && chapterNumber > 1) return false;
+
+            //BibleVersionsDetailsStore.GetBibleVersionInformation
+
+            return true;
+        }
+
+        /// <summary>
+        ///     
+        /// </summary>
+        /// <param name="bookKey"></param>
+        /// <param name="chapterNumber"></param>
+        /// <returns></returns>
+        public static bool IsChapterInBook(string bookKey, int chapterNumber)
+        {
+            return false;
+        }
+
 
         /// <summary>
         ///     * HELPER FUNCTION *
+        ///     Expands the list of parsed verses to individual verse units.
+        /// </summary>
+        /// <param name="parsedVerses"></param>
+        /// <returns></returns>
+        private static IEnumerable<(string, string, string)> ExpandParsedVerseReferences
+            (IEnumerable<(string, string, string)> parsedVerses)
+        {
+
+            foreach ((string book, string chapter, string verse) in parsedVerses)
+            {
+                //if (IsValidChapter(book, chapter))
+                //{
+
+                //}
+            }
+
+            return parsedVerses;
+        }
+
+        /// <summary>
+        ///     * HELPER FUNCTION *
+        ///     Checks to see if a Bible book only has one chapter.
         /// </summary>
         /// <param name="bibleBookKey"></param>
         /// <returns>
         ///     True if specified Bible book is only one chapter; false otherwise.
         /// </returns>
-        public static bool IsOneChapter(string bibleBookKey)
+        public static bool HasOneChapter(string bibleBookKey)
             => OneChapterBooks.Contains(bibleBookKey);
+
+        /// <summary>
+        ///     When populating the list of verses, if there are no verses specified, interprets the chapter as a verse if the Bible book only has one chapter or populates the list will all verses in a chapter if the Bible book has more than one chapter.
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
+        private static void EvaluateEmptyVerseField()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

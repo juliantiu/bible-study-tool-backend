@@ -1,5 +1,5 @@
 ﻿using BibleStudyTool.Core.Entities.BibleVerse;
-using BibleStudyTool.Core.Entities.BibleVersionInformation;
+using BibleStudyTool.Core.Entities.BibleVersionDetails;
 using BibleStudyTool.Core.Globals;
 using BibleStudyTool.Core.Utilities;
 using BibleStudyTool.Infrastructure.ServiceLayer.Interfaces;
@@ -13,20 +13,46 @@ namespace BibleStudyTool.Infrastructure.ServiceLayer
 {
     public class BibleVerseService : IBibleVerseService
     {
-        public Task<IEnumerable<BibleVerse>> GetChapterVerses(string language, string version, string bookKey, int chapter)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="language"></param>
+        /// <param name="version"></param>
+        /// <param name="bookKey"></param>
+        /// <param name="chapter"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Task<IEnumerable<BibleVerse>>
+            GetChapterVerses
+                (string language, string version, string bookKey, int chapter)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<BibleVerse>> SearchVerseReferences(string language, string versionAbbreviation, string rawVerseReferences)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="language"></param>
+        /// <param name="versionAbbreviation"></param>
+        /// <param name="rawVerseReferences"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        /// <exception cref="NotImplementedException"></exception>
+        public Task<IEnumerable<BibleVerse>>
+            SearchVerseReferences
+                (string language,
+                string versionAbbreviation,
+                string rawVerseReferences)
         {
             try
             {
-                IEnumerable<(string, string, string)> parsedVerses = BibleVerseHelper.ParseSSVR(rawVerseReferences);
+                IEnumerable<(string, string, string)> parsedVerses
+                    = BibleVerseReferenceParser
+                        .ParseRawVerseReferences(rawVerseReferences);
+
 
                 // BibleVersionInformation? bibleVersion = BibleVersionLookupTable.BibleVersionInformationRequest(language, versionAbbreviation);
-
-                Console.WriteLine("hello world");
 
             }
             catch (ArgumentNullException)

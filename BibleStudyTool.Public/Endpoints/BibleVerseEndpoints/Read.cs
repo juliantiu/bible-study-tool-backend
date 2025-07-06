@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BibleStudyTool.Public.Endpoints.BibleVerseEndpoints
 {
     [ApiController]
-    [Route("api/bible-verses/read")]
+    [Route("api/bible-verses/")]
     public class Read : ControllerBase
     {
 
@@ -16,9 +16,9 @@ namespace BibleStudyTool.Public.Endpoints.BibleVerseEndpoints
             _bibleVerseService = bibleVerseService;
         }
 
-        [HttpGet(Name = "get-bible-verse-references")]
+        [HttpGet(Name = "search-bible-references")]
         public async Task<ActionResult<IEnumerable<BibleVerse>>>
-        GetBibleVerseReferences(string language, string versionAbbreviation, string rawVerseReferences)
+        GetBibleVersesByReferences(string language, string versionAbbreviation, string rawVerseReferences)
         {
             try
             {
