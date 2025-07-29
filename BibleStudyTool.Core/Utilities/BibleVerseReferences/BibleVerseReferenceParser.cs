@@ -1,29 +1,11 @@
-﻿using System.Text.RegularExpressions;
-using static BibleStudyTool.Core.Utilities.BibleVerseHelper;
+﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using static BibleStudyTool.Core.Utilities.BibleVerseReferences.BibleVerseHelper;
 
-namespace BibleStudyTool.Core.Utilities
+namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
 {
     public static class BibleVerseReferenceParser
     {
-        /// <summary>
-        ///     Converts raw string of semicolon-separated verse references into
-        ///     list of verse references, which can be used to build a list of 
-        ///     Bible verses.
-        /// </summary>
-        /// <param name="rawVerseReferences"></param>
-        /// <returns>
-        ///     An enumerable set of tuples that describe Bible verse 
-        ///     references.
-        /// </returns>
-        public static IEnumerable<(string, string, string)>
-            ParseRawVerseReferences(string rawVerseReferences)
-        {
-            MatchCollection separatedVerseRefernces
-                = TokenizeVerseReferences(rawVerseReferences);
-
-            return GenerateVerseReferenceUnits(separatedVerseRefernces);
-        }
-
         /// <summary>
         ///     * HELPER FUNCTION *
         ///     Separates semicolon-separated verse references into verse 
@@ -33,8 +15,8 @@ namespace BibleStudyTool.Core.Utilities
         /// <returns>
         ///     A MatchCollection of string verse references.
         /// </returns>
-        private static MatchCollection
-            TokenizeVerseReferences(string rawVerseReferences)
+        internal static MatchCollection
+            TokenizeRawVerseReferenceInputs(string rawVerseReferences)
         {
             string pattern
                 = @"((?:[123]\s)?[a-zA-Z]+\.?)?(\s\d+-?\d*:?(?!\s\w*))(\d+[a-z]?-?\d*(?:,)?\s?)*";
@@ -48,7 +30,6 @@ namespace BibleStudyTool.Core.Utilities
         }
 
         /// <summary>
-        ///     * HELPER FUNCTION *
         ///     Organizes a set of raw string semicolon-separated verse 
         ///     references into an iterable set of tuples that describe
         ///     Bible verse references in its various components.
@@ -59,27 +40,31 @@ namespace BibleStudyTool.Core.Utilities
         ///     by (BookKey, ChapterNumber, VerseNumber).
         /// </returns>
         /// <exception cref="Exception"></exception>
-        private static IEnumerable<(string, string, string)>
+        internal static IEnumerable<(string, string, string)>
             GenerateVerseReferenceUnits
                 (MatchCollection separatedVerseReferences)
         {
             List<(string, string, string)> parsedVerses = new();
 
+            string bookName = string.Empty;
 
             foreach (Match separatedVerseReference in separatedVerseReferences)
             {
                 GroupCollection separatedVerseGroupings
                     = separatedVerseReference.Groups;
 
-                string bookName =
+                string matchedBookName =
                     separatedVerseGroupings
                         [(int)ParseMatchGroupPosition.Book]
                             .Value;
 
+                bookName = NormalizeBookName(bookName, matchedBookName);
+
                 string chapters =
                         separatedVerseGroupings
                             [(int)ParseMatchGroupPosition.Chapter]
-                                .Value;
+                                .Value
+                                    .Trim(':');
 
                 CaptureCollection potentialVerses =
                     separatedVerseGroupings
@@ -89,16 +74,16 @@ namespace BibleStudyTool.Core.Utilities
                 if (HasNoVersesComponent(potentialVerses))
                 {
                     parsedVerses
-                        .Add(
-                            (bookName,
-                            chapters.ToString().Trim(':'),
+                        .Add((bookName,
+                            chapters,
                             string.Empty));
 
                     continue;
                 }
 
-                PopulateVersesComponent
-                    (bookName, chapters, potentialVerses, ref parsedVerses);
+                parsedVerses.AddRange
+                    (PopulateVersesComponent
+                        (bookName, chapters, potentialVerses));
             }
 
             return parsedVerses;
@@ -124,15 +109,18 @@ namespace BibleStudyTool.Core.Utilities
         /// <param name="verses"></param>
         /// <param name="parsedVerses"></param>
         /// <returns></returns>
-        private static void
+        private static List<(string, string, string)>
             PopulateVersesComponent
                 (string bookName,
                 string chapters,
-                CaptureCollection verses,
-                ref List<(string, string, string)> parsedVerses)
+                CaptureCollection verses)
         {
+            List <(string, string, string)> parsedVerses = new();
+
             foreach (Capture verse in verses)
                 parsedVerses.Add((bookName, chapters, verse.Value.Trim(',')));
+
+            return parsedVerses;
         }
     }
 }

@@ -2,6 +2,7 @@
 using BibleStudyTool.Core.Entities.BibleVersionDetails;
 using BibleStudyTool.Core.Globals;
 using BibleStudyTool.Core.Utilities;
+using BibleStudyTool.Core.Utilities.BibleVerseReferences;
 using BibleStudyTool.Infrastructure.ServiceLayer.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -47,12 +48,15 @@ namespace BibleStudyTool.Infrastructure.ServiceLayer
         {
             try
             {
-                IEnumerable<(string, string, string)> parsedVerses
-                    = BibleVerseReferenceParser
-                        .ParseRawVerseReferences(rawVerseReferences);
+                
+                BibleVerseReferencesProcessor verseReferencesProcessor
+                    = new(language, versionAbbreviation, rawVerseReferences);
 
+                List<BibleVerse> bibleVerses =
+                    verseReferencesProcessor
+                        .ParseBibleVerseReferencesInput(rawVerseReferences);
 
-                // BibleVersionInformation? bibleVersion = BibleVersionLookupTable.BibleVersionInformationRequest(language, versionAbbreviation);
+                // connect to the database and retrieve the Bible verses
 
             }
             catch (ArgumentNullException)
