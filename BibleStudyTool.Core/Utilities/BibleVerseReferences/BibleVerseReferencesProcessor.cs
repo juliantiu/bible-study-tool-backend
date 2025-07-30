@@ -1,5 +1,7 @@
 ﻿using BibleStudyTool.Core.Entities.BibleVerse;
+using BibleStudyTool.Core.Globals;
 using System;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
@@ -137,8 +139,41 @@ namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
 
         private void PhaseThreeProcessing()
         {
-            // checks validity of each verse reference
-            // and adds them to the BibleVerses list
+            // Checks the validity of each verse reference and adds them to the
+            // list of BibleVerses.
+
+            string currentBookKey = String.Empty;
+            
+            foreach (var verseUnits in PhaseTwoVerseReferenceUnits)
+            {
+                string bookKey = verseUnits.bookKey;
+                string chapterComponent = verseUnits.chaptersComponent;
+                string verseComponent = verseUnits.versesComponent;
+
+                if (BibleVersionsDetailsStore.IsChapterInBook
+                        (Language,
+                        BibleVersion,
+                        bookKey,
+                        chapterComponent))
+                {
+                    if (BibleVersionsDetailsStore.IsVerseInChapter
+                        (Language,
+                        BibleVersion,
+                        bookKey,
+                        chapterComponent,
+                        verseComponent))
+                    {
+                        BibleVerses
+                            .Add
+                                (new BibleVerse
+                                    (Language,
+                                    BibleVersion,
+                                    verseUnits.bookKey,
+                                    int.Parse(verseUnits.chaptersComponent),
+                                    int.Parse(verseUnits.versesComponent)));
+                    }
+                }
+            }
         }
     }
 }

@@ -9,16 +9,16 @@ namespace BibleStudyTool.Infrastructure.DAL.Npgsql
 {
     public abstract class EntityQueries
     {
-        protected readonly string _connectionString;
+        protected readonly string ConnectionString;
 
         public EntityQueries(string connectionString)
         {
-            _connectionString = connectionString;
+            ConnectionString = connectionString;
         }
 
         protected NpgsqlConnection GetConnection()
         {
-            NpgsqlConnection sqlCnx = new(_connectionString);
+            NpgsqlConnection sqlCnx = new(ConnectionString);
             sqlCnx.Open();
             return sqlCnx;
         }

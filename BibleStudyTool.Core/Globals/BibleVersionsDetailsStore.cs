@@ -153,5 +153,34 @@ namespace BibleStudyTool.Core.Globals
 
             return -1;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="language"></param>
+        /// <param name="version"></param>
+        /// <param name="bookKey"></param>
+        /// <param name="chapter"></param>
+        /// <param name="verse"></param>
+        /// <returns></returns>
+        public static bool IsVerseInChapter
+            (string language,
+            string version,
+            string bookKey,
+            string chapter,
+            string verse)
+        {
+
+            int numVersesInChapter =
+                GetTotalVersesInChapter
+                    (language,
+                    version,
+                    bookKey,
+                    chapter);
+
+            return Int32.TryParse(verse, out int verseNumber)
+                && verseNumber > 0
+                && verseNumber <= numVersesInChapter;
+        }
     }
 }

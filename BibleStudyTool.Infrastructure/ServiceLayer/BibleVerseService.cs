@@ -3,6 +3,7 @@ using BibleStudyTool.Core.Entities.BibleVersionDetails;
 using BibleStudyTool.Core.Globals;
 using BibleStudyTool.Core.Utilities;
 using BibleStudyTool.Core.Utilities.BibleVerseReferences;
+using BibleStudyTool.Infrastructure.DAL.Npgsql;
 using BibleStudyTool.Infrastructure.ServiceLayer.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,13 @@ namespace BibleStudyTool.Infrastructure.ServiceLayer
 {
     public class BibleVerseService : IBibleVerseService
     {
+
+        private readonly BibleVerseQueries BibleVerseQueries;
+
+        public BibleVerseService(BibleVerseQueries bibleVerseQueries)
+        {
+            BibleVerseQueries = bibleVerseQueries;
+        }
 
         /// <summary>
         /// 
@@ -40,7 +48,7 @@ namespace BibleStudyTool.Infrastructure.ServiceLayer
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         /// <exception cref="NotImplementedException"></exception>
-        public Task<IEnumerable<BibleVerse>>
+        public async Task<IEnumerable<BibleVerse>>
             SearchVerseReferences
                 (string language,
                 string versionAbbreviation,
@@ -56,7 +64,8 @@ namespace BibleStudyTool.Infrastructure.ServiceLayer
                     verseReferencesProcessor
                         .ParseBibleVerseReferencesInput(rawVerseReferences);
 
-                // connect to the database and retrieve the Bible verses
+                return await BibleVerseQueries
+                            .SearchVerseReferencesQueryAsync(bibleVerses);
 
             }
             catch (ArgumentNullException)
@@ -67,7 +76,8 @@ namespace BibleStudyTool.Infrastructure.ServiceLayer
             throw new NotImplementedException();
         }
 
-        public Task<BibleVerse> GetVerse(string verseReferenceKey, string language, string version)
+        public Task<BibleVerse> GetVerse
+            (string verseReferenceKey, string language, string version)
         {
             throw new NotImplementedException();
         }

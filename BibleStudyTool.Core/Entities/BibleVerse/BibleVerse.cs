@@ -32,5 +32,24 @@ namespace BibleStudyTool.Core.Entities.BibleVerse
             VerseNumber = verseNumber;
         }
 
+        public BibleVerse
+            (string language,
+            string versionAbbreviation,
+            string bookKey,
+            int chapterNumber,
+            int verseNumber)
+        {
+            Language = language;
+            VersionAbbreviation = versionAbbreviation;
+            BookKey = bookKey;
+            VerseText = string.Empty;
+            ChapterNumber = chapterNumber;
+            VerseNumber = verseNumber;
+        }
+
+        public void OverrideVerseText(string newVerseText)
+        {
+            VerseText = newVerseText;
+        }
     }
 }

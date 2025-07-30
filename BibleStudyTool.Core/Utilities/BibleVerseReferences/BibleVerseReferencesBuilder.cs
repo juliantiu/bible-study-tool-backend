@@ -34,19 +34,11 @@ namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
                 string bookKey,
                 string chaptersComponent)
         {
-            if (IsValidComponent
-                (language,
-                version,
-                bookKey,
-                chaptersComponent,
-                Component.Chapters))
+
+            return new List<(string, string, string)>
             {
-                return new List<(string, string, string)>
-                {
-                    (bookKey, "1", chaptersComponent)
-                };
-            }
-            return [];
+                (bookKey, "1", chaptersComponent)
+            };
         }
 
         /// <summary>
@@ -136,20 +128,10 @@ namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
                 string version,
                 string bookKey,
                 int[] componentRange,
-                Component component,
-                string verseChapter = "0")
+                Component component)
         {
             int startValue = componentRange[0];
             int endValue = componentRange[1];
-
-            if (!AreValidComponents
-                    (language,
-                    version,
-                    bookKey,
-                    [$"{startValue}", $"{endValue}"],
-                    component,
-                    verseChapter))
-                return [];
 
             if (endValue < startValue) return [];
 
@@ -161,87 +143,89 @@ namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
             return interpolatedComponent;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="language"></param>
-        /// <param name="version"></param>
-        /// <param name="bookKey"></param>
-        /// <param name="chapters"></param>
-        /// <returns></returns>
-        internal static bool
-            AreValidComponents
-                (string language,
-                string version,
-                string bookKey,
-                string[] components,
-                Component componentType,
-                string verseChapter = "0")
-        {
-            foreach (string component in components)
-            {
-                if (!IsValidComponent
-                        (language,
-                        version,
-                        bookKey,
-                        component,
-                        componentType,
-                        verseChapter))
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="language"></param>
+        ///// <param name="version"></param>
+        ///// <param name="bookKey"></param>
+        ///// <param name="chapters"></param>
+        ///// <returns></returns>
+        //internal static bool
+        //    AreValidComponents
+        //        (string language,
+        //        string version,
+        //        string bookKey,
+        //        string[] components,
+        //        Component componentType,
+        //        string verseChapter = "0")
+        //{
+        //    foreach (string component in components)
+        //    {
+        //        if (!IsValidComponent
+        //                (language,
+        //                version,
+        //                bookKey,
+        //                component,
+        //                componentType,
+        //                verseChapter))
 
-                    return false;
-            }
+        //            return false;
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        internal static bool
-           IsValidComponent
-                (string language,
-                string version,
-                string bookKey,
-                string component,
-                Component componentType,
-                string verseChapter = "0")
-        {
+        //internal static bool
+        //   IsValidComponent
+        //        (string language,
+        //        string version,
+        //        string bookKey,
+        //        string component,
+        //        Component componentType,
+        //        string verseChapter = "0")
+        //{
 
-            switch (componentType)
-            {
-                case Component.Chapters:
+        //    switch (componentType)
+        //    {
+        //        case Component.Chapters:
 
-                    if (IsChapterInBook
-                            (language,
-                            version,
-                            bookKey,
-                            component))
-                        return true;
-                    break;
+        //            if (IsChapterInBook
+        //                    (language,
+        //                    version,
+        //                    bookKey,
+        //                    component))
+        //                return true;
+        //            break;
 
-                case Component.Verses:
+        //        case Component.Verses:
 
-                    int totalVersesInChaper = GetTotalVersesInChapter
-                        (language, version, bookKey, verseChapter);
+        //            int totalVersesInChaper = GetTotalVersesInChapter
+        //                (language, version, bookKey, verseChapter);
 
-                    int componentValue = NumerizeNumericComponent(component);
+        //            int componentValue = NumerizeNumericComponent(component);
 
-                    if (componentValue > 0
-                        && componentValue <= totalVersesInChaper)
+        //            if (componentValue > 0
+        //                && componentValue <= totalVersesInChaper)
                         
-                        return true;
+        //                return true;
 
-                    break;
+        //            break;
 
-                default:
-                    break;
-            }
+        //        default:
+        //            break;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="versesComponent"></param>
         /// <returns></returns>
+
+
         internal static bool NoVerseComponent
             (string versesComponent) => string.IsNullOrEmpty(versesComponent);
 
@@ -291,36 +275,24 @@ namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
 
             int[] verseRange = AccquireComponentRange(versesComponent);
 
-            if(IsValidComponent
-                (language,
-                version,
-                bookKey,
-                chaptersComponent,
-                Component.Chapters))
-            {
-                List<string> versesInRange =
-                    InterpolateComponentRange
-                        (language,
-                        version,
-                        bookKey,
-                        verseRange,
-                        Component.Verses,
-                        chaptersComponent);
+            List<string> versesInRange =
+                InterpolateComponentRange
+                    (language,
+                    version,
+                    bookKey,
+                    verseRange,
+                    Component.Verses);
 
-                return versesInRange
-                    .Aggregate
-                        (new List<(string, string, string)>(),
-                        (verseReferences, verse) =>
-                        {
-                            verseReferences
-                                .Add((bookKey, chaptersComponent, verse));
+            return versesInRange
+                .Aggregate
+                    (new List<(string, string, string)>(),
+                    (verseReferences, verse) =>
+                    {
+                        verseReferences
+                            .Add((bookKey, chaptersComponent, verse));
 
-                            return verseReferences;
-                        }); ;
-            }
-
-            return verseReferences;
-
+                        return verseReferences;
+                    }); ;
         }
     }
 }

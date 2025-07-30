@@ -101,25 +101,6 @@ namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
 
         /// <summary>
         ///     * HELPER FUNCTION *
-        ///     Separates semicolon-separated verse references into verse reference units.
-        /// </summary>
-        /// <param name="rawVerseReferences"></param>
-        /// <returns>
-        ///     A MatchCollection of string verse references.
-        /// </returns>
-        private static MatchCollection TokenizeVerseReferences(string rawVerseReferences)
-        {
-            string pattern = @"((?:[123]\s)?[a-zA-Z]+\.?)?(\s\d+-?\d*:?(?!\s\w*))(\d+[a-z]?-?\d*(?:,)?\s?)*";
-            RegexOptions regexOptions = RegexOptions.IgnoreCase;
-
-            Regex regex =
-                new(pattern, regexOptions, TimeSpan.FromSeconds(1));
-
-            return regex.Matches(rawVerseReferences);
-        }
-
-        /// <summary>
-        ///     * HELPER FUNCTION *
         ///     Converts the Bible book name into its associated Bible book key.
         /// </summary>
         /// <param name="bookName"></param>
@@ -147,28 +128,6 @@ namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
                     ($"Parser encountered a verse reference with an unknown Bible book name: {bookName}.");
 
             return result;
-        }
-
-        public static bool IsValidChapter(string bookKey, int chapterNumber)
-        {
-            // check if chapter is in the book
-            // first check if the book is a one-chapter book
-            if (HasOneChapter(bookKey) && chapterNumber > 1) return false;
-
-            //BibleVersionsDetailsStore.GetBibleVersionInformation
-
-            return true;
-        }
-
-        /// <summary>
-        ///     
-        /// </summary>
-        /// <param name="bookKey"></param>
-        /// <param name="chapterNumber"></param>
-        /// <returns></returns>
-        public static bool IsChapterInBook(string bookKey, int chapterNumber)
-        {
-            return false;
         }
 
         /// <summary>
