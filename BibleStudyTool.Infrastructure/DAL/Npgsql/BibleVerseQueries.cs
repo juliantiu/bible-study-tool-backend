@@ -53,7 +53,7 @@ WHERE
                         while (await reader.ReadAsync())
                         {
                             verse
-                                .OverrideVerseText
+                                .SetVerseText
                                     (reader.GetString
                                         (reader.GetOrdinal("verse_text"))
                                         ?? "");

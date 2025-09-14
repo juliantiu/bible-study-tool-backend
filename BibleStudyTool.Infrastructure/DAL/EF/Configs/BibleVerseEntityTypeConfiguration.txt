@@ -13,17 +13,19 @@ namespace BibleStudyTool.Infrastructure.DAL.EF.Configs
     {
         public void Configure(EntityTypeBuilder<BibleVerse> builder)
         {
+            // Previous version with composite key
+            //builder.HasKey 
+            //    (bv => new
+            //        { 
+            //            bv.Language,
+            //            bv.VersionAbbreviation,
+            //            bv.BookKey,
+            //            bv.ChapterNumber,
+            //            bv.VerseNumber
+            //        }
+            //    );
 
-            builder.HasKey 
-                (bv => new
-                    { 
-                        bv.Language,
-                        bv.VersionAbbreviation,
-                        bv.BookKey,
-                        bv.ChapterNumber,
-                        bv.VerseNumber
-                    }
-                );
+            builder.HasKey(bv => bv.BibleVerseId);
 
             builder.Property
                 (bv => bv.Language)
