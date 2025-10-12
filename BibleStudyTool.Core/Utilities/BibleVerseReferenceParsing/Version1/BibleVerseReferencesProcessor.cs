@@ -4,7 +4,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
-namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
+namespace BibleStudyTool.Core.Utilities.BibleVerseReferenceParsing
 {
     public class BibleVerseReferencesProcessor
     {

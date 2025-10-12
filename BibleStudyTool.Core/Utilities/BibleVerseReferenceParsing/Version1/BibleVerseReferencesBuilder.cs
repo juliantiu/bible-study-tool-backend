@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using static BibleStudyTool.Core.Globals.BibleVersionsDetailsStore;
-using static BibleStudyTool.Core.Utilities.BibleVerseReferences.BibleVerseHelper;
+using static BibleStudyTool.Core.Utilities.BibleVerseReferenceParsing.BibleVerseHelper;
 
-namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
+namespace BibleStudyTool.Core.Utilities.BibleVerseReferenceParsing
 {
     /// <summary>
     /// 

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using static BibleStudyTool.Core.Utilities.BibleVerseReferences.BibleVerseHelper;
+using static BibleStudyTool.Core.Utilities.BibleVerseReferenceParsing.BibleVerseHelper;
 
-namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
+namespace BibleStudyTool.Core.Utilities.BibleVerseReferenceParsing
 {
     public static class BibleVerseReferenceParser
     {

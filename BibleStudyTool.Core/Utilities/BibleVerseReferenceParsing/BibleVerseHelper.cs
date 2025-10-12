@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace BibleStudyTool.Core.Utilities.BibleVerseReferences
+namespace BibleStudyTool.Core.Utilities.BibleVerseReferenceParsing
 {
     public static class BibleVerseHelper
     {

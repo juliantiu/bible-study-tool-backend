@@ -1,15 +1,8 @@
 ﻿using BibleStudyTool.Core.Entities.BibleVerse;
 using BibleStudyTool.Core.Entities.BibleVersionDetails;
-using BibleStudyTool.Core.Globals;
-using BibleStudyTool.Core.Utilities;
-using BibleStudyTool.Core.Utilities.BibleVerseReferences;
+using BibleStudyTool.Core.Utilities.BibleVerseReferenceParsing;
 using BibleStudyTool.Infrastructure.DAL.Npgsql;
 using BibleStudyTool.Infrastructure.ServiceLayer.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BibleStudyTool.Infrastructure.ServiceLayer
 {
@@ -56,16 +49,9 @@ namespace BibleStudyTool.Infrastructure.ServiceLayer
         {
             try
             {
-                
-                BibleVerseReferencesProcessor verseReferencesProcessor
+
+                ChainedBibleVerseReferencesParser parser
                     = new(language, versionAbbreviation, rawVerseReferences);
-
-                List<BibleVerse> bibleVerses =
-                    verseReferencesProcessor
-                        .ParseBibleVerseReferencesInput(rawVerseReferences);
-
-                return await BibleVerseQueries
-                            .SearchVerseReferencesQueryAsync(bibleVerses);
 
             }
             catch (ArgumentNullException)
